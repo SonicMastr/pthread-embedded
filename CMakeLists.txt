@@ -5,6 +5,7 @@ project(pthread-embedded LANGUAGES C)
 set(CMAKE_C_STANDARD 99)
 
 option(BUILD_TESTSUITE "Build testsuite" OFF)
+option(MODULE "Build as SUPRX for PS Vita" OFF)
 
 if (VITA)
   include("$ENV{VITASDK}/share/vita.cmake" REQUIRED)
