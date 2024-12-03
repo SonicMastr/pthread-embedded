@@ -135,7 +135,7 @@ pte_pop_cleanup_all (int execute)
 }
 
 
-unsigned int
+hidden unsigned int
 pte_get_exception_services_code (void)
 {
   return (unsigned int) NULL;

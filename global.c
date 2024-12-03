@@ -45,54 +45,54 @@
 #include "implement.h"
 
 
-int pte_processInitialized = PTE_FALSE;
-pte_thread_t * pte_threadReuseTop = PTE_THREAD_REUSE_EMPTY;
-pte_thread_t * pte_threadReuseBottom = PTE_THREAD_REUSE_EMPTY;
-pthread_key_t pte_selfThreadKey = NULL;
-pthread_key_t pte_cleanupKey = NULL;
-pthread_cond_t pte_cond_list_head = NULL;
-pthread_cond_t pte_cond_list_tail = NULL;
+hidden int pte_processInitialized = PTE_FALSE;
+hidden pte_thread_t * pte_threadReuseTop = PTE_THREAD_REUSE_EMPTY;
+hidden pte_thread_t * pte_threadReuseBottom = PTE_THREAD_REUSE_EMPTY;
+hidden pthread_key_t pte_selfThreadKey = NULL;
+hidden pthread_key_t pte_cleanupKey = NULL;
+hidden pthread_cond_t pte_cond_list_head = NULL;
+hidden pthread_cond_t pte_cond_list_tail = NULL;
 
-int pte_concurrency = 0;
+hidden int pte_concurrency = 0;
 
 /* What features have been auto-detaected */
-int pte_features = 0;
+hidden int pte_features = 0;
 
-unsigned char pte_smp_system = PTE_TRUE;  /* Safer if assumed true initially. */
+hidden unsigned char pte_smp_system = PTE_TRUE;  /* Safer if assumed true initially. */
 
 /*
  * Global lock for managing pthread_t struct reuse.
  */
-pte_osMutexHandle pte_thread_reuse_lock;
+hidden pte_osMutexHandle pte_thread_reuse_lock;
 
 /*
  * Global lock for testing internal state of statically declared mutexes.
  */
-pte_osMutexHandle pte_mutex_test_init_lock;
+hidden pte_osMutexHandle pte_mutex_test_init_lock;
 
 /*
  * Global lock for testing internal state of PTHREAD_COND_INITIALIZER
  * created condition variables.
  */
-pte_osMutexHandle pte_cond_test_init_lock;
+hidden pte_osMutexHandle pte_cond_test_init_lock;
 
 /*
  * Global lock for testing internal state of PTHREAD_RWLOCK_INITIALIZER
  * created read/write locks.
  */
-pte_osMutexHandle pte_rwlock_test_init_lock;
+hidden pte_osMutexHandle pte_rwlock_test_init_lock;
 
 /*
  * Global lock for testing internal state of PTHREAD_SPINLOCK_INITIALIZER
  * created spin locks.
  */
-pte_osMutexHandle pte_spinlock_test_init_lock;
+hidden pte_osMutexHandle pte_spinlock_test_init_lock;
 
 /*
  * Global lock for condition variable linked list. The list exists
  * to wake up CVs when a WM_TIMECHANGE message arrives. See
  * w32_TimeChangeHandler.c.
  */
-pte_osMutexHandle pte_cond_list_lock;
+hidden pte_osMutexHandle pte_cond_list_lock;
 
 

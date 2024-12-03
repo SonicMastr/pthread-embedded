@@ -1,0 +1,149 @@
+pthread:
+  attributes: 0x0
+  version:
+    major: 0x1
+    minor: 0x1
+  nid: 0xa5607c61
+  main:
+    start: __module_start
+    stop: __module_stop
+    exit: __module_exit
+  libraries:
+    pthread:
+      version: 0x1
+      syscall: false
+      nid: 0x1574d07b
+      functions:
+      - pthread_rwlockattr_init: 0xf35ee0
+      - pthread_init: 0x19a9587
+      - pthread_cancel: 0x2bf3a20
+      - pthread_attr_getstackaddr: 0x31e129b
+      - pthread_mutexattr_destroy: 0x46ae2e0
+      - pthread_spin_lock: 0x50d912b
+      - pthread_rwlock_unlock: 0x72fd36a
+      - pthread_mutex_init: 0xaae82aa
+      - pthread_attr_getstack: 0xb9f2b93
+      - pthread_attr_setscope: 0xbfd4c26
+      - pthread_sigmask: 0xe06ff52
+      - pthread_barrierattr_setpshared: 0x10ad2351
+      - pthread_equal: 0x12edba46
+      - pthread_join: 0x15df7c21
+      - sem_open: 0x17c89e15
+      - pthread_cond_destroy: 0x18d79d43
+      - sem_post: 0x1a11f858
+      - pthread_getschedparam: 0x1b45c522
+      - pthread_attr_setdetachstate: 0x1d29d399
+      - pthread_barrier_destroy: 0x1daef309
+      - sched_get_priority_min: 0x1df01c0e
+      - pthread_terminate: 0x21ec8a45
+      - pthread_key_create: 0x2238de71
+      - pthread_detach: 0x2754b48d
+      - __module_exit_main: 0x2810df9e
+      - pthread_attr_getinheritsched: 0x2ac85209
+      - pthread_barrierattr_init: 0x3036dbf8
+      - pthread_getconcurrency: 0x313585bb
+      - pthread_attr_setstacksize: 0x341e2b23
+      - pthread_barrier_init: 0x347e1599
+      - pthread_exit: 0x3609c29f
+      - pthread_rwlockattr_destroy: 0x379a6b34
+      - pthread_attr_getdetachstate: 0x380c08a9
+      - pthread_setschedparam: 0x406acd55
+      - __sched_cpucount: 0x416abf46
+      - pthread_kill: 0x443dd3eb
+      - pthread_attr_setschedpolicy: 0x4790515f
+      - pthread_mutexattr_init: 0x47a6aeca
+      - sem_trywait: 0x4935c9c9
+      - pthread_spin_trylock: 0x4af5dd2a
+      - __module_start: 0x4e7f0530
+      - __module_start_main: 0x4fd162e9
+      - sched_setscheduler: 0x500ab186
+      - pthread_cond_wait: 0x5017b56d
+      - pthread_rwlock_timedwrlock: 0x52826aa3
+      - pthread_spin_init: 0x52e1cb8f
+      - pthread_setcanceltype: 0x54e51a8c
+      - pthread_getspecific: 0x577702d1
+      - pthread_rwlock_wrlock: 0x5ae4ed8d
+      - pthread_rwlock_timedrdlock: 0x5b1e76ec
+      - pthread_mutex_lock: 0x5c9854c5
+      - sem_post_multiple: 0x5dadea87
+      - pthread_condattr_setclock: 0x5e65573d
+      - pthread_mutexattr_settype: 0x5fb27ce7
+      - pthread_mutexattr_setpshared: 0x6224aa87
+      - pthread_atfork: 0x641b5f2e
+      - pthread_key_delete: 0x65beb692
+      - pthread_mutex_timedlock: 0x66b376c9
+      - pthread_attr_getguardsize: 0x685c8d5a
+      - pthread_rwlock_rdlock: 0x698be7f0
+      - pthread_attr_getschedparam: 0x6b071587
+      - pte_push_cleanup: 0x6b5de860
+      - pthread_barrierattr_destroy: 0x6be1a025
+      - sched_yield: 0x6fe8768f
+      - pthread_attr_setinheritsched: 0x7414ff87
+      - pthread_attr_setstack: 0x74c568a4
+      - pthread_attr_init: 0x779fb828
+      - pthread_rwlock_tryrdlock: 0x79ba5f6c
+      - sem_init: 0x828fce2f
+      - pte_pop_cleanup: 0x82e89249
+      - pthread_spin_unlock: 0x8481cf1e
+      - pthread_mutexattr_getkind_np: 0x865127db
+      - __module_stop_main: 0x8beee427
+      - pthread_num_processors_np: 0x8bf06ed9
+      - pthread_attr_setguardsize: 0x8ea1b807
+      - pthread_mutex_trylock: 0x94e51936
+      - sem_getvalue: 0x9522c4fc
+      - pthread_barrierattr_getpshared: 0x9652deef
+      - ftime: 0x969bb279
+      - at_quick_exit: 0x98d59313
+      - __module_exit: 0x98e1e55b
+      - pthread_rwlock_trywrlock: 0x9c3edf11
+      - pthread_attr_setschedparam: 0x9cda810e
+      - pthread_timechange_handler_np: 0x9fb7fb74
+      - pthread_cond_timedwait: 0xa21ed6e1
+      - pspStubThreadEntry: 0xa367f903
+      - pthread_barrier_wait: 0xa4567481
+      - pthread_mutexattr_getpshared: 0xa4a2e7e5
+      - pthread_mutex_destroy: 0xa5c494e7
+      - pthread_create: 0xa723085c
+      - pthread_condattr_getpshared: 0xa82ac63b
+      - pthread_testcancel: 0xb1a1df42
+      - pthread_condattr_destroy: 0xb1a1edda
+      - pthread_rwlockattr_getpshared: 0xb4bfcf04
+      - pthread_condattr_getclock: 0xb593aa00
+      - __module_stop: 0xb72bcc46
+      - sched_get_priority_max: 0xb84f3411
+      - pthread_cond_broadcast: 0xb9a13b83
+      - pthread_mutexattr_setkind_np: 0xbbf80ef8
+      - pthread_cond_signal: 0xbc885bcd
+      - sem_destroy: 0xbf6f2ab7
+      - pthread_cond_init: 0xc0899b8c
+      - pthread_attr_setstackaddr: 0xc0cfd3a2
+      - sem_close: 0xc429c88a
+      - pthread_setcancelstate: 0xc6369dfe
+      - pthread_setconcurrency: 0xc9fdcddd
+      - sem_timedwait: 0xcaff5f00
+      - pthread_rwlock_destroy: 0xcbaaed68
+      - pthread_attr_getschedpolicy: 0xcc45d6f9
+      - pthread_setspecific: 0xccd2c56c
+      - pthread_mutex_unlock: 0xd1819f74
+      - pthread_self: 0xd615fe3c
+      - pthread_attr_getscope: 0xd85a3837
+      - pthread_setup: 0xd9700b7a
+      - pthread_condattr_init: 0xda2c4f7d
+      - sem_unlink: 0xdcf332b4
+      - pthread_rwlock_init: 0xde9900b7
+      - sem_wait: 0xdfde1950
+      - atexit: 0xe07a8410
+      - pthread_setaffinity_np: 0xe14417e5
+      - pthread_once: 0xe9a2ce7b
+      - pthread_attr_getstacksize: 0xedafd89d
+      - pthread_mutexattr_gettype: 0xf1035a6f
+      - pthread_attr_destroy: 0xf1f0b9c2
+      - pthread_getaffinity_np: 0xf4fe4c6f
+      - pthread_spin_destroy: 0xf54e3a15
+      - pthread_condattr_setpshared: 0xf8aa2f16
+      - pthread_delay_np: 0xfd0501d4
+      - pthread_rwlockattr_setpshared: 0xfde32aca
+      variables:
+      - __crt0_module_sdk_version_var: 0xc08b0635
+      - _tls_region_info: 0xc7cdb72f
+      - __dso_handle: 0xf49ad47a

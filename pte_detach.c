@@ -54,7 +54,7 @@ pte_thread_detach_common (unsigned char threadShouldExit)
        */
       pte_thread_t * sp = (pte_thread_t *) pthread_getspecific (pte_selfThreadKey);
 
-      if (sp != NULL) // otherwise OS thread with no implicit POSIX handle.
+      if (sp != NULL && sp != 0x7F80DEAD) // otherwise OS thread with no implicit POSIX handle.
         {
 
           pte_callUserDestroyRoutines (sp->ptHandle);

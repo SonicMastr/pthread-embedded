@@ -56,7 +56,7 @@ pte_threadDestroyCommon (pthread_t thread, unsigned char shouldThreadExit)
   pte_thread_t * tp = (pte_thread_t *) thread;
   pte_thread_t threadCopy;
 
-  if (tp != NULL)
+  if (tp != NULL && tp != 0x7F80DEAD)
     {
       /*
        * Copy thread state so that the thread can be atomically NULLed.

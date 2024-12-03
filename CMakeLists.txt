@@ -43,11 +43,44 @@ elseif (PLATFORM_PSP)
     list(APPEND TEST_SOURCES ${CMAKE_SOURCE_DIR}/platform/psp/main.c)
 endif()
 
-add_library(pthread STATIC
+if (MODULE)
+add_executable(pthread
+  $ENV{VITASDK}/arm-vita-eabi/lib/crt0_module.o
   ${SOURCES}
   ${PLATFORM_SOURCES}
 )
 
+target_link_libraries(pthread PRIVATE
+    -nostdlib
+    -nostartfiles
+    -nodefaultlibs
+    SceLibcPosix_stub_weak
+    SceRtc_stub
+    SceNetCtl_stub_weak
+    SceNet_stub_weak
+    SceProcessmgr_stub
+    SceSysmodule_stub
+    SceKernelThreadMgr_stub
+    SceIofilemgr_stub_weak
+    SceFios2_stub_weak
+    SceLibcExt_stub_weak
+    SceLibKernel_stub
+    gcc
+) 
+
+vita_create_self(pthread.suprx pthread PRIVATE
+    CONFIG exports.yml
+    UNSAFE
+)
+
+vita_create_stubs(stubs pthread ${CMAKE_CURRENT_SOURCE_DIR}/exports.yml)
+
+else()
+add_library(pthread STATIC
+  ${SOURCES}
+  ${PLATFORM_SOURCES}
+)
+endif()
 if (BUILD_TESTSUITE)
 
   add_executable(pthread-test
@@ -98,5 +131,14 @@ elseif (PLATFORM_PSP)
   )
 endif()
 
-install(TARGETS pthread ARCHIVE)
-
+if (MODULE)
+  install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/stubs/
+    DESTINATION lib
+    FILES_MATCHING PATTERN "*.a"
+  )
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/pthread.suprx
+    DESTINATION "$ENV{VITASDK}/arm-vita-eabi/modules"
+  )
+else()
+  install(TARGETS pthread ARCHIVE)
+endif()

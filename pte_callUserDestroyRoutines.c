@@ -117,7 +117,7 @@ pte_callUserDestroyRoutines (pthread_t thread)
                */
               (void) pthread_mutex_lock(&(sp->threadLock));
 
-              if ((assoc = (ThreadKeyAssoc *)sp->nextAssoc) == NULL)
+              if ((assoc = (ThreadKeyAssoc *)sp->nextAssoc) == NULL || assoc == 0x7F80DEAD)
                 {
                   /* Finished */
                   pthread_mutex_unlock(&(sp->threadLock));

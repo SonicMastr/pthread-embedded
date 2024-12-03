@@ -57,6 +57,7 @@
 #include "semaphore.h"
 #include "sched.h"
 
+#define hidden __attribute__((__visibility__("hidden")))
 
 typedef enum
 {
@@ -450,54 +451,54 @@ extern "C"
      * =====================
      */
 
-    int pte_is_attr (const pthread_attr_t * attr);
+    hidden int pte_is_attr (const pthread_attr_t * attr);
 
-    int pte_cond_check_need_init (pthread_cond_t * cond);
-    int pte_mutex_check_need_init (pthread_mutex_t * mutex);
-    int pte_rwlock_check_need_init (pthread_rwlock_t * rwlock);
-    int pte_spinlock_check_need_init (pthread_spinlock_t * lock);
+    hidden int pte_cond_check_need_init (pthread_cond_t * cond);
+    hidden int pte_mutex_check_need_init (pthread_mutex_t * mutex);
+    hidden int pte_rwlock_check_need_init (pthread_rwlock_t * rwlock);
+    hidden int pte_spinlock_check_need_init (pthread_spinlock_t * lock);
 
-    int pte_processInitialize (void);
+    hidden int pte_processInitialize (void);
 
-    void pte_processTerminate (void);
+    hidden void pte_processTerminate (void);
 
-    void pte_threadDestroy (pthread_t tid);
-    void pte_threadExitAndDestroy (pthread_t tid);
+    hidden void pte_threadDestroy (pthread_t tid);
+    hidden void pte_threadExitAndDestroy (pthread_t tid);
 
-    void pte_pop_cleanup_all (int execute);
+    hidden void pte_pop_cleanup_all (int execute);
 
-    pthread_t pte_new (void);
+    hidden pthread_t pte_new (void);
 
-    pthread_t pte_threadReusePop (void);
+    hidden pthread_t pte_threadReusePop (void);
 
-    void pte_threadReusePush (pthread_t thread);
+    hidden void pte_threadReusePush (pthread_t thread);
 
-    int pte_getprocessors (int *count);
+    hidden int pte_getprocessors (int *count);
 
-    int pte_setthreadpriority (pthread_t thread, int policy, int priority);
+    hidden int pte_setthreadpriority (pthread_t thread, int policy, int priority);
 
-    void pte_rwlock_cancelwrwait (void *arg);
+    hidden void pte_rwlock_cancelwrwait (void *arg);
 
-    int pte_threadStart (void *vthreadParms);
+    hidden int pte_threadStart (void *vthreadParms);
 
-    void pte_callUserDestroyRoutines (pthread_t thread);
+    hidden void pte_callUserDestroyRoutines (pthread_t thread);
 
-    int pte_tkAssocCreate (pte_thread_t * thread, pthread_key_t key);
+    hidden int pte_tkAssocCreate (pte_thread_t * thread, pthread_key_t key);
 
-    void pte_tkAssocDestroy (ThreadKeyAssoc * assoc);
+    hidden void pte_tkAssocDestroy (ThreadKeyAssoc * assoc);
 
-    int sem_wait_nocancel (sem_t * sem);
+    hidden int sem_wait_nocancel (sem_t * sem);
 
-    unsigned int pte_relmillisecs (const struct timespec * abstime);
+    hidden unsigned int pte_relmillisecs (const struct timespec * abstime);
 
-    void pte_mcs_lock_acquire (pte_mcs_lock_t * lock, pte_mcs_local_node_t * node);
+    hidden void pte_mcs_lock_acquire (pte_mcs_lock_t * lock, pte_mcs_local_node_t * node);
 
-    void pte_mcs_lock_release (pte_mcs_local_node_t * node);
+    hidden void pte_mcs_lock_release (pte_mcs_local_node_t * node);
 
     /* Declared in private.c */
-    void pte_throw (unsigned int exception);
+    hidden void pte_throw (unsigned int exception);
 
-    int pte_cancellable_wait (pte_osSemaphoreHandle semHandle, unsigned int* timeout);
+    hidden int pte_cancellable_wait (pte_osSemaphoreHandle semHandle, unsigned int* timeout);
 
 #define PTE_ATOMIC_EXCHANGE pte_osAtomicExchange
 #define PTE_ATOMIC_EXCHANGE_ADD pte_osAtomicExchangeAdd
@@ -505,8 +506,8 @@ extern "C"
 #define PTE_ATOMIC_DECREMENT pte_osAtomicDecrement
 #define PTE_ATOMIC_INCREMENT pte_osAtomicIncrement
 
-    int  pte_thread_detach_np();
-    int  pte_thread_detach_and_exit_np();
+    hidden int  pte_thread_detach_np();
+    hidden int  pte_thread_detach_and_exit_np();
 
 
 #ifdef __cplusplus

@@ -68,18 +68,18 @@ pte_tkAssocDestroy (ThreadKeyAssoc * assoc)
    * Both key->keyLock and thread->threadLock are locked on
    * entry to this routine.
    */
-  if (assoc != NULL)
+  if (assoc != NULL && assoc != 0x7F80DEAD)
     {
       ThreadKeyAssoc * prev, * next;
 
       /* Remove assoc from thread's keys chain */
       prev = assoc->prevKey;
       next = assoc->nextKey;
-      if (prev != NULL)
+      if (prev != NULL && prev != 0x7F80DEAD)
         {
           prev->nextKey = next;
         }
-      if (next != NULL)
+      if (next != NULL && next != 0x7F80DEAD)
         {
           next->prevKey = prev;
         }
@@ -101,11 +101,11 @@ pte_tkAssocDestroy (ThreadKeyAssoc * assoc)
       /* Remove assoc from key's threads chain */
       prev = assoc->prevThread;
       next = assoc->nextThread;
-      if (prev != NULL)
+      if (prev != NULL && prev != 0x7F80DEAD)
         {
           prev->nextThread = next;
         }
-      if (next != NULL)
+      if (next != NULL && next != 0x7F80DEAD)
         {
           next->prevThread = prev;
         }

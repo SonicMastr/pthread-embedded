@@ -139,7 +139,7 @@ pthread_setspecific (pthread_key_t key, const void *value)
               /*
                * Locate existing association
                */
-              while (assoc != NULL)
+              while (assoc != NULL && assoc != 0x7F80DEAD)
                 {
                   if (assoc->key == key)
                     {
@@ -154,7 +154,7 @@ pthread_setspecific (pthread_key_t key, const void *value)
               /*
                * create an association if not found
                */
-              if (assoc == NULL)
+              if (assoc == NULL || assoc == 0x7F80DEAD)
                 {
                   result = pte_tkAssocCreate (sp, key);
                 }

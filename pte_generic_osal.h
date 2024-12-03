@@ -33,6 +33,8 @@
 extern "C" {
 #endif // __cplusplus
 
+#define hidden __attribute__((__visibility__("hidden")))
+
 /** @name Misc */
 //@{
 typedef enum pte_osResult
@@ -63,7 +65,7 @@ typedef enum pte_osResult
  * Provides a hook for the OSAL to implement any OS specific initialization.  This is guaranteed to be
  * called before any other OSAL function.
  */
-pte_osResult pte_osInit(void);
+hidden pte_osResult pte_osInit(void);
 //@}
 
 /** @name Mutexes */
@@ -77,7 +79,7 @@ pte_osResult pte_osInit(void);
  * @return PTE_OS_OK - Mutex successfully created
  * @return PTE_OS_NO_RESOURCESs - Insufficient resources to create mutex
  */
-pte_osResult pte_osMutexCreate(pte_osMutexHandle *pHandle);
+hidden pte_osResult pte_osMutexCreate(pte_osMutexHandle *pHandle);
 
 /**
  * Deletes a mutex and frees any associated resources.
@@ -86,7 +88,7 @@ pte_osResult pte_osMutexCreate(pte_osMutexHandle *pHandle);
  *
  * @return PTE_OS_OK - Mutex successfully deleted.
  */
-pte_osResult pte_osMutexDelete(pte_osMutexHandle handle);
+hidden pte_osResult pte_osMutexDelete(pte_osMutexHandle handle);
 
 /**
  * Locks the mutex
@@ -95,7 +97,7 @@ pte_osResult pte_osMutexDelete(pte_osMutexHandle handle);
  *
  * @return PTE_OS_OK - Mutex successfully locked.
  */
-pte_osResult pte_osMutexLock(pte_osMutexHandle handle);
+hidden pte_osResult pte_osMutexLock(pte_osMutexHandle handle);
 
 /**
  * Locks the mutex, returning after @p timeoutMsecs if the resources is not
@@ -107,7 +109,7 @@ pte_osResult pte_osMutexLock(pte_osMutexHandle handle);
  * @return PTE_OS_OK - Mutex successfully locked.
  * @return PTE_OS_TIMEOUT - Timeout expired before lock was obtained.
  */
-pte_osResult pte_osMutexTimedLock(pte_osMutexHandle handle, unsigned int timeoutMsecs);
+hidden pte_osResult pte_osMutexTimedLock(pte_osMutexHandle handle, unsigned int timeoutMsecs);
 
 /**
  * Unlocks the mutex
@@ -116,7 +118,7 @@ pte_osResult pte_osMutexTimedLock(pte_osMutexHandle handle, unsigned int timeout
  *
  * @return PTE_OS_OK - Mutex successfully unlocked.
  */
-pte_osResult pte_osMutexUnlock(pte_osMutexHandle handle);
+hidden pte_osResult pte_osMutexUnlock(pte_osMutexHandle handle);
 //@}
 
 /** @name Threads */
@@ -138,7 +140,7 @@ typedef int (*pte_osThreadEntryPoint)(void *params);
  * @return PTE_OS_OK - New thread successfully created.
  * @return PTE_OS_NO_RESOURCESs - Insufficient resources to create thread
  */
-pte_osResult pte_osThreadCreate(pte_osThreadEntryPoint entryPoint,
+hidden pte_osResult pte_osThreadCreate(pte_osThreadEntryPoint entryPoint,
                                 int stackSize,
                                 int initialPriority,
                                 void *argv,
@@ -151,14 +153,14 @@ pte_osResult pte_osThreadCreate(pte_osThreadEntryPoint entryPoint,
  *
  * @return PTE_OS_OK - thread successfully started.
  */
-pte_osResult pte_osThreadStart(pte_osThreadHandle osThreadHandle);
+hidden pte_osResult pte_osThreadStart(pte_osThreadHandle osThreadHandle);
 
 /**
  * Causes the current thread to stop executing.
  *
  * @return Never returns (thread terminated)
  */
-void pte_osThreadExit();
+hidden void pte_osThreadExit();
 
 /**
  * Waits for the specified thread to end.  If the thread has already terminated, this returns
@@ -168,50 +170,50 @@ void pte_osThreadExit();
  *
  * @return PTE_OS_OK - specified thread terminated.
  */
-pte_osResult pte_osThreadWaitForEnd(pte_osThreadHandle threadHandle);
+hidden pte_osResult pte_osThreadWaitForEnd(pte_osThreadHandle threadHandle);
 
 /**
  * Returns the handle of the currently executing thread.
  */
-pte_osThreadHandle pte_osThreadGetHandle(void);
+hidden pte_osThreadHandle pte_osThreadGetHandle(void);
 
 /**
  * Returns the priority of the specified thread.
  */
-int pte_osThreadGetPriority(pte_osThreadHandle threadHandle);
+hidden int pte_osThreadGetPriority(pte_osThreadHandle threadHandle);
 
 /**
  * Sets the priority of the specified thread.
  *
  * @return PTE_OS_OK - thread priority successfully set
  */
-pte_osResult pte_osThreadSetPriority(pte_osThreadHandle threadHandle, int newPriority);
+hidden pte_osResult pte_osThreadSetPriority(pte_osThreadHandle threadHandle, int newPriority);
 
 /**
  * Sets the affinity of the specified thread.
  *
  * @return PTE_OS_OK - thread affinity successfully set
  */
-pte_osResult pte_osThreadSetAffinity(pte_osThreadHandle threadHandle, int newAffinity);
+hidden pte_osResult pte_osThreadSetAffinity(pte_osThreadHandle threadHandle, int newAffinity);
 
 /**
  * Returns the affinity of the specified thread.
  */
-int pte_osThreadGetAffinity(pte_osThreadHandle threadHandle);
+hidden int pte_osThreadGetAffinity(pte_osThreadHandle threadHandle);
 
 /**
  * Frees resources associated with the specified thread.  This is called after the thread has terminated
  * and is no longer needed (e.g. after pthread_join returns).  This call will always be made
  * from a different context than that of the target thread.
  */
-pte_osResult pte_osThreadDelete(pte_osThreadHandle handle);
+hidden pte_osResult pte_osThreadDelete(pte_osThreadHandle handle);
 
 /**
  * Frees resources associated with the specified thread and then causes the thread to exit.
  * This is called after the thread has terminated and is no longer needed (e.g. after
  * pthread_join returns).  This call will always be made from the context of the target thread.
  */
-pte_osResult pte_osThreadExitAndDelete(pte_osThreadHandle handle);
+hidden pte_osResult pte_osThreadExitAndDelete(pte_osThreadHandle handle);
 
 /**
  * Cancels the specified thread.  This should cause pte_osSemaphoreCancellablePend() and for pte_osThreadCheckCancel()
@@ -221,7 +223,7 @@ pte_osResult pte_osThreadExitAndDelete(pte_osThreadHandle handle);
  *
  * @return Thread successfully canceled.
  */
-pte_osResult pte_osThreadCancel(pte_osThreadHandle threadHandle);
+hidden pte_osResult pte_osThreadCancel(pte_osThreadHandle threadHandle);
 
 /**
  * Check if pte_osThreadCancel() has been called on the specified thread.
@@ -231,28 +233,28 @@ pte_osResult pte_osThreadCancel(pte_osThreadHandle threadHandle);
  * @return PTE_OS_OK - Thread has not been cancelled
  * @return PTE_OS_INTERRUPTED - Thread has been cancelled.
  */
-pte_osResult pte_osThreadCheckCancel(pte_osThreadHandle threadHandle);
+hidden pte_osResult pte_osThreadCheckCancel(pte_osThreadHandle threadHandle);
 
 /**
  * Causes the current thread to sleep for the specified number of milliseconds.
  */
-void pte_osThreadSleep(unsigned int msecs);
+hidden void pte_osThreadSleep(unsigned int msecs);
 
 /**
  * Returns the maximum allowable priority
  */
-int pte_osThreadGetMaxPriority();
+hidden int pte_osThreadGetMaxPriority();
 
 /**
  * Returns the minimum allowable priority
  */
-int pte_osThreadGetMinPriority();
+hidden int pte_osThreadGetMinPriority();
 
 /**
  * Returns the priority that should be used if the caller to pthread_create doesn't
  * explicitly set one.
  */
-int pte_osThreadGetDefaultPriority();
+hidden int pte_osThreadGetDefaultPriority();
 
 //@}
 
@@ -269,7 +271,7 @@ int pte_osThreadGetDefaultPriority();
  * @return PTE_OS_OK - Semaphore successfully created
  * @return PTE_OS_NO_RESOURCESs - Insufficient resources to create semaphore
  */
-pte_osResult pte_osSemaphoreCreate(int initialValue, pte_osSemaphoreHandle *pHandle);
+hidden pte_osResult pte_osSemaphoreCreate(int initialValue, pte_osSemaphoreHandle *pHandle);
 
 /**
  * Deletes a semaphore and frees any associated resources.
@@ -278,7 +280,7 @@ pte_osResult pte_osSemaphoreCreate(int initialValue, pte_osSemaphoreHandle *pHan
  *
  * @return PTE_OS_OK - Semaphore successfully deleted.
  */
-pte_osResult pte_osSemaphoreDelete(pte_osSemaphoreHandle handle);
+hidden pte_osResult pte_osSemaphoreDelete(pte_osSemaphoreHandle handle);
 
 /**
  * Posts to the semaphore
@@ -288,7 +290,7 @@ pte_osResult pte_osSemaphoreDelete(pte_osSemaphoreHandle handle);
  *
  * @return PTE_OS_OK - semaphore successfully released.
  */
-pte_osResult pte_osSemaphorePost(pte_osSemaphoreHandle handle, int count);
+hidden pte_osResult pte_osSemaphorePost(pte_osSemaphoreHandle handle, int count);
 
 /**
  * Acquire a semaphore, returning after @p timeoutMsecs if the semaphore is not
@@ -301,7 +303,7 @@ pte_osResult pte_osSemaphorePost(pte_osSemaphoreHandle handle, int count);
  * @return PTE_OS_OK - Semaphore successfully acquired.
  * @return PTE_OS_TIMEOUT - Timeout expired before semaphore was obtained.
  */
-pte_osResult pte_osSemaphorePend(pte_osSemaphoreHandle handle, unsigned int *pTimeout);
+hidden pte_osResult pte_osSemaphorePend(pte_osSemaphoreHandle handle, unsigned int *pTimeout);
 
 /**
  * Acquire a semaphore, returning after @p timeoutMsecs if the semaphore is not
@@ -316,7 +318,7 @@ pte_osResult pte_osSemaphorePend(pte_osSemaphoreHandle handle, unsigned int *pTi
  * @return PTE_OS_OK - Semaphore successfully acquired.
  * @return PTE_OS_TIMEOUT - Timeout expired before semaphore was obtained.
  */
-pte_osResult pte_osSemaphoreCancellablePend(pte_osSemaphoreHandle handle, unsigned int *pTimeout);
+hidden pte_osResult pte_osSemaphoreCancellablePend(pte_osSemaphoreHandle handle, unsigned int *pTimeout);
 //@}
 
 
@@ -329,7 +331,7 @@ pte_osResult pte_osSemaphoreCancellablePend(pte_osSemaphoreHandle handle, unsign
  * @param index The TLS key for the value.
  * @param value The value to save
  */
-pte_osResult pte_osTlsSetValue(unsigned int key, void * value);
+hidden pte_osResult pte_osTlsSetValue(unsigned int key, void * value);
 
 /**
  * Retrieves the thread specific value for the specified key for
@@ -341,13 +343,13 @@ pte_osResult pte_osTlsSetValue(unsigned int key, void * value);
  *
  * @return The value associated with @p key for the current thread.
  */
-void * pte_osTlsGetValue(unsigned int key);
+hidden void * pte_osTlsGetValue(unsigned int key);
 
 /**
  * Initializes the OS TLS support.  This is called by the PTE library
  * prior to performing ANY TLS operation.
  */
-void pte_osTlsInit(void);
+hidden void pte_osTlsInit(void);
 
 /**
  * Allocates a new TLS key.
@@ -358,7 +360,7 @@ void pte_osTlsInit(void);
  * @return PTE_OS_NO_RESOURCESs - Insufficient resources to allocate key (e.g.
  *                         maximum number of keys reached).
  */
-pte_osResult pte_osTlsAlloc(unsigned int *pKey);
+hidden pte_osResult pte_osTlsAlloc(unsigned int *pKey);
 
 /**
  * Frees the specified TLS key.
@@ -367,7 +369,7 @@ pte_osResult pte_osTlsAlloc(unsigned int *pKey);
  *
  * @return PTE_OS_OK - TLS key was successfully freed.
  */
-pte_osResult pte_osTlsFree(unsigned int key);
+hidden pte_osResult pte_osTlsFree(unsigned int key);
 //@}
 
 /** @name Atomic operations */
@@ -387,7 +389,7 @@ pte_osResult pte_osTlsFree(unsigned int key);
  *
  * @return original value of destination
  */
-int pte_osAtomicExchange(int *pTarg, int val);
+hidden int pte_osAtomicExchange(int *pTarg, int val);
 
 /**
  * Performs an atomic compare-and-exchange oepration on the specified
@@ -406,7 +408,7 @@ int pte_osAtomicExchange(int *pTarg, int val);
  *
  * @return Original value of destination
  */
-int pte_osAtomicCompareExchange(int *pdest, int exchange, int comp);
+hidden int pte_osAtomicCompareExchange(int *pdest, int exchange, int comp);
 
 /**
  * Adds the value to target as an atomic operation
@@ -422,7 +424,7 @@ int pte_osAtomicCompareExchange(int *pdest, int exchange, int comp);
  *
  * @return Original value of destination
  */
-int  pte_osAtomicExchangeAdd(int volatile* pdest, int value);
+hidden int  pte_osAtomicExchangeAdd(int volatile* pdest, int value);
 
 /**
  * Decrements the destination.
@@ -437,7 +439,7 @@ int  pte_osAtomicExchangeAdd(int volatile* pdest, int value);
  *
  * @return Original destination value
  */
-int pte_osAtomicDecrement(int *pdest);
+hidden int pte_osAtomicDecrement(int *pdest);
 
 /**
  * Increments the destination value
@@ -447,7 +449,7 @@ int pte_osAtomicDecrement(int *pdest);
  * *pdest++;
  * return origVal;
  */
-int pte_osAtomicIncrement(int *pdest);
+hidden int pte_osAtomicIncrement(int *pdest);
 //@}
 
 struct timeb;

@@ -91,7 +91,7 @@ pte_tkAssocCreate (pte_thread_t * sp, pthread_key_t key)
    */
   assoc = (ThreadKeyAssoc *) calloc (1, sizeof (*assoc));
 
-  if (assoc == NULL)
+  if (assoc == NULL || assoc == 0x7F80DEAD)
     {
       return ENOMEM;
     }
@@ -104,7 +104,7 @@ pte_tkAssocCreate (pte_thread_t * sp, pthread_key_t key)
    */
   assoc->prevThread = NULL;
   assoc->nextThread = (ThreadKeyAssoc *) key->threads;
-  if (assoc->nextThread != NULL)
+  if (assoc->nextThread != NULL && assoc->nextThread != 0x7F80DEAD)
     {
       assoc->nextThread->prevThread = assoc;
     }
@@ -115,7 +115,7 @@ pte_tkAssocCreate (pte_thread_t * sp, pthread_key_t key)
    */
   assoc->prevKey = NULL;
   assoc->nextKey = (ThreadKeyAssoc *) sp->keys;
-  if (assoc->nextKey != NULL)
+  if (assoc->nextKey != NULL && assoc->nextKey != 0x7F80DEAD)
     {
       assoc->nextKey->prevKey = assoc;
     }
