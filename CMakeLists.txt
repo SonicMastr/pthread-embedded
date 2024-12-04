@@ -112,14 +112,15 @@ install(FILES
 )
 
 
-if (MODULE)
-  install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/stubs/
-    DESTINATION lib
-    FILES_MATCHING PATTERN "*.a"
-  )
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/pthread.suprx
-    DESTINATION "$ENV{VITASDK}/arm-vita-eabi/modules"
-  )
-else()
+
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/pthread_stubs/
+  DESTINATION lib
+  FILES_MATCHING PATTERN "*.a"
+)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/pthread.suprx
+  DESTINATION "$ENV{VITASDK}/arm-vita-eabi/modules"
+)
+
+if (NOT MODULE)
   install(TARGETS pthread ARCHIVE)
 endif()
