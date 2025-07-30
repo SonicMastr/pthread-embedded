@@ -61,12 +61,17 @@
 #define DEBUG_PRINT(...)
 #endif
 
-typedef struct tlsKeyEntry
-{
-	struct tlsKeyEntry *next;
-	unsigned int key;
-	void *value;
-} tlsKeyEntry;
+// TLS keys we are allowing for use here
+#define TLS_SLOT_START 0x100
+#define TLS_SLOT_END 0x200
+
+#define MAX_THREADS 256
+
+void* sceKernelGetReservedTLSAddr(unsigned key) {
+  uintptr_t tpidruro;
+  asm volatile("MRC p15, #0, %0, c13, c0, #3" : "=r"(tpidruro));
+  return (void*)(tpidruro - 0x800 + 4 * key);
+}
 
 /*
  * Data stored on a per-thread basis - allocated in pte_osThreadCreate
@@ -74,19 +79,54 @@ typedef struct tlsKeyEntry
  */
 typedef struct pspThreadData
   {
-    /* Entry point and parameters to thread's main function */
-    pte_osThreadEntryPoint entryPoint;
-    void * argv;
+    /* Thread ID of cancellation */
+    SceUID threadId;
 
+	/* Entry point and parameters to thread's main function */
+	pte_osThreadEntryPoint entryPoint;
+    void * argv;
     /* Semaphore used for cancellation.  Posted to by pte_osThreadCancel, 
        polled in pte_osSemaphoreCancellablePend */
 	SceUID evid;
 
   } pspThreadData;
 
+
+static pspThreadData thread_list[MAX_THREADS];
+
+SceKernelLwMutexWork _tls_mutex __attribute__((aligned(8)));
+
+static volatile uint32_t _last_tls_key = TLS_SLOT_START;
+
 static inline int invert_priority(int priority)
 {
 	return (pte_osThreadGetMinPriority() - priority) + pte_osThreadGetMaxPriority();
+}
+
+int pspFindFreeThreadSlot()
+{
+	int i;
+	for (i = 1; i < MAX_THREADS; i++)
+	{
+		if (thread_list[i].threadId == 0)
+		{
+			return i;
+		}
+	}
+	return -1; // no free slots
+}
+
+int pspGetThreadIndex(SceUID threadId)
+{
+	int i;
+	for (i = 0; i < MAX_THREADS; i++)
+	{
+		if (thread_list[i].threadId == threadId)
+		{
+			return i;
+		}
+	}
+	return -1; // not found
 }
 
 /* A new thread's stub entry point.  It retrieves the real entry point from the per thread control
@@ -94,9 +134,18 @@ static inline int invert_priority(int priority)
  */
 int pspStubThreadEntry (unsigned int argc, void *argv)
 {
-	SceUID thid = sceKernelGetThreadId();
-	pspThreadData *pThreadData = *(pspThreadData **)vitasdk_get_pthread_data(thid);
-	return (*(pThreadData->entryPoint))(pThreadData->argv);
+	int index = pspGetThreadIndex(sceKernelGetThreadId());
+	if (index < 0)
+	{
+		DEBUG_PRINT("pspStubThreadEntry: Invalid thread handle %x\n", sceKernelGetThreadId());
+		return -1; // or some error code
+	}
+	if (thread_list[index].entryPoint == NULL)
+	{
+		DEBUG_PRINT("pspStubThreadEntry: No entry point set for thread %d\n", index);
+		return -1; // or some error code
+	}
+	return (*(thread_list[index].entryPoint))(thread_list[index].argv);
 }
 
 /****************************************************************************
@@ -111,19 +160,13 @@ pte_osResult pte_osInit(void)
 	 * 1. Entry point and parameters for the user thread's main function.
 	 * 2. Semaphore used for thread cancellation.
 	 */
-	pspThreadData *pThreadData = (pspThreadData *)malloc(sizeof(pspThreadData));
+	memset(thread_list, 0, sizeof(thread_list));
 
-	if (pThreadData == NULL)
-	{
-		DEBUG_PRINT("malloc(pspThreadData): PTE_OS_NO_RESOURCES\n");
-		return PTE_OS_NO_RESOURCES;
-	}
+	sceKernelCreateLwMutex(&_tls_mutex, "TLS Access Mutex", SCE_KERNEL_MUTEX_ATTR_RECURSIVE, 1, NULL);
+	thread_list[0].threadId = sceKernelGetThreadId();
+	thread_list[0].evid = sceKernelCreateEventFlag("", 0, 0, NULL);
+	sceKernelUnlockLwMutex(&_tls_mutex, 1);
 
-	pspThreadData **addr = (pspThreadData **)vitasdk_get_pthread_data(0);
-
-	pThreadData->evid = sceKernelCreateEventFlag("", 0, 0, NULL);
-
-	*addr = pThreadData;
 	return PTE_OS_OK;
 }
 
@@ -140,7 +183,7 @@ pte_osResult pte_osThreadCreate(pte_osThreadEntryPoint entryPoint,
                                 pte_osThreadHandle* ppte_osThreadHandle)
 {
 	/* pthread_create was called by non-pthread thread */
-	if (*(pspThreadData **)vitasdk_get_pthread_data(0) == NULL) {
+	if (pspGetThreadIndex(sceKernelGetThreadId()) == -1) {
 		if (pte_osInit() != PTE_OS_OK) {
 			return PTE_OS_NO_RESOURCES;
 		}
@@ -155,11 +198,12 @@ pte_osResult pte_osThreadCreate(pte_osThreadEntryPoint entryPoint,
 	 * 1. Entry point and parameters for the user thread's main function.
 	 * 2. Semaphore used for thread cancellation.
 	 */
-	pspThreadData *pThreadData = (pspThreadData *)malloc(sizeof(pspThreadData));
-
-	if (pThreadData == NULL)
+	sceKernelLockLwMutex(&_tls_mutex, 1, 0);
+	int index = pspFindFreeThreadSlot();
+	if (index < 0)
 	{
-		DEBUG_PRINT("malloc(pspThreadData): PTE_OS_NO_RESOURCES\n");
+		DEBUG_PRINT("No free thread slots available: PTE_OS_NO_RESOURCES\n");
+		sceKernelUnlockLwMutex(&_tls_mutex, 1);
 		return PTE_OS_NO_RESOURCES;
 	}
 
@@ -177,23 +221,24 @@ pte_osResult pte_osThreadCreate(pte_osThreadEntryPoint entryPoint,
 		if (thid == SCE_KERNEL_ERROR_NO_MEMORY)
 		{
 			DEBUG_PRINT("sceKernelCreateThread: PTE_OS_NO_RESOURCES\n");
+			sceKernelUnlockLwMutex(&_tls_mutex, 1);
 			return PTE_OS_NO_RESOURCES;
 		}
 		else
 		{
 			DEBUG_PRINT("sceKernelCreateThread: PTE_OS_GENERAL_FAILURE: %x\n", thid);
+			sceKernelUnlockLwMutex(&_tls_mutex, 1);
 			return PTE_OS_GENERAL_FAILURE;
 		}
 	}
 
-	pspThreadData **addr = (pspThreadData **)vitasdk_get_pthread_data(thid);
+	thread_list[index].threadId = thid;
+	thread_list[index].entryPoint = entryPoint;
+	thread_list[index].argv = argv;
+	thread_list[index].evid = sceKernelCreateEventFlag("", 0, 0, NULL);
 
+	sceKernelUnlockLwMutex(&_tls_mutex, 1);
 	*ppte_osThreadHandle = thid;
-	pThreadData->entryPoint = entryPoint;
-	pThreadData->argv = argv;
-	pThreadData->evid = sceKernelCreateEventFlag("", 0, 0, NULL);
-
-	*addr = pThreadData;
 	return PTE_OS_OK;
 }
 
@@ -205,20 +250,16 @@ pte_osResult pte_osThreadStart(pte_osThreadHandle osThreadHandle)
 
 pte_osResult pte_osThreadDelete(pte_osThreadHandle handle)
 {
-	pspThreadData *pThreadData = *(pspThreadData **)vitasdk_get_pthread_data(handle);
-	sceKernelDeleteEventFlag(pThreadData->evid);
-	free(pThreadData);
-	tlsKeyEntry *entry = *(tlsKeyEntry **)vitasdk_get_tls_data(handle);
+	int index = pspGetThreadIndex(handle);
+	sceKernelDeleteEventFlag(thread_list[index].evid);
 
-	while (entry)
-	{
-		tlsKeyEntry *ent2 = entry;
-		entry = entry->next;
-		free(ent2);
-	}
+	sceKernelLockLwMutex(&_tls_mutex, 1, 0);
+	thread_list[index].threadId = 0;
+	thread_list[index].evid = 0;
+	thread_list[index].entryPoint = NULL;
+	thread_list[index].argv = NULL;
+	sceKernelUnlockLwMutex(&_tls_mutex, 1);
 
-	*(tlsKeyEntry **)vitasdk_get_tls_data(handle) = NULL;
-	vitasdk_delete_thread_reent(handle);
 	sceKernelDeleteThread(handle);
 	return PTE_OS_OK;
 }
@@ -242,8 +283,7 @@ void pte_osThreadExit()
 pte_osResult pte_osThreadWaitForEnd(pte_osThreadHandle threadHandle)
 {
 	int status = 0;
-	pspThreadData *pThreadData = *(pspThreadData **)vitasdk_get_pthread_data(0);
-	SceUID evid = pThreadData->evid;
+	SceUID evid = thread_list[pspGetThreadIndex(sceKernelGetThreadId())].evid;
 	while (1)
 	{
 		unsigned int bits = 0;
@@ -297,9 +337,7 @@ pte_osResult pte_osThreadSetPriority(pte_osThreadHandle threadHandle, int newPri
 
 pte_osResult pte_osThreadCancel(pte_osThreadHandle threadHandle)
 {
-	pspThreadData *pThreadData = *(pspThreadData **)vitasdk_get_pthread_data(threadHandle);
-
-	int res = sceKernelSetEventFlag(pThreadData->evid, PTHREAD_EVID_CANCEL);
+	int res = sceKernelSetEventFlag(thread_list[pspGetThreadIndex(threadHandle)].evid, PTHREAD_EVID_CANCEL);
 
 	if (res < 0)
 		return PTE_OS_GENERAL_FAILURE;
@@ -310,10 +348,8 @@ pte_osResult pte_osThreadCancel(pte_osThreadHandle threadHandle)
 
 pte_osResult pte_osThreadCheckCancel(pte_osThreadHandle threadHandle)
 {
-	pspThreadData *pThreadData = *(pspThreadData **)vitasdk_get_pthread_data(threadHandle);
-
 	unsigned int bits = 0;
-	sceKernelPollEventFlag(pThreadData->evid, PTHREAD_EVID_CANCEL, SCE_EVENT_WAITAND, &bits);
+	sceKernelPollEventFlag(thread_list[pspGetThreadIndex(threadHandle)].evid, PTHREAD_EVID_CANCEL, SCE_EVENT_WAITAND, &bits);
 
 	if (bits & PTHREAD_EVID_CANCEL)
 		return PTE_OS_INTERRUPTED;
@@ -480,9 +516,8 @@ pte_osResult pte_osSemaphorePend(pte_osSemaphoreHandle handle, unsigned int *pTi
  */
 pte_osResult pte_osSemaphoreCancellablePend(pte_osSemaphoreHandle semHandle, unsigned int *pTimeout)
 {
-	pspThreadData *pThreadData = *(pspThreadData **)vitasdk_get_pthread_data(0);
 	SceUInt32 start = sceKernelGetProcessTimeLow();
-	SceUID evid = pThreadData->evid;
+	SceUID evid = thread_list[pspGetThreadIndex(sceKernelGetThreadId())].evid;
 	while (1)
 	{
 		unsigned int bits = 0;
@@ -491,8 +526,7 @@ pte_osResult pte_osSemaphoreCancellablePend(pte_osSemaphoreHandle semHandle, uns
 		if (bits & PTHREAD_EVID_CANCEL)
 			return PTE_OS_INTERRUPTED;
 
-
-		// only poll the semaphore
+		// only poll the semaphoreg
 		SceUInt semTimeout = 5*POLLING_DELAY_IN_us;
 		int res = sceKernelWaitSema(semHandle, 1, &semTimeout);
 
@@ -563,69 +597,45 @@ int pte_osAtomicIncrement(int *pdest)
  *
  ***************************************************************************/
 
-pte_osResult pte_osTlsSetValue(unsigned int key, void * value)
+pte_osResult pte_osTlsSetValue(unsigned int key, void *value)
 {
-	tlsKeyEntry *entry = *(tlsKeyEntry **)vitasdk_get_tls_data(0);
-	tlsKeyEntry *prev = NULL;
+    void *addr = sceKernelGetReservedTLSAddr(key);
 
-	while (entry)
-	{
-		if (entry->key == key)
-			break;
+    // Log key and returned address
+    sceClibPrintf("[TLS] SetValue: key = %u, addr = %p\n", key, addr);
 
-		prev = entry;
-		entry = entry->next;
-	}
+    if (!addr)
+    {
+        sceClibPrintf("[TLS] ERROR: TLS address for key %u is NULL (possible invalid key or uninitialized TLS).\n", key);
+        return PTE_OS_GENERAL_FAILURE;
+    }
 
-	// no matching entry...
-	if (!entry)
-	{
-		entry = (tlsKeyEntry *)malloc(sizeof(tlsKeyEntry));
-		entry->key = key;
-		entry->next = NULL;
+    *(void **)addr = value;
 
-		if (prev)
-			prev->next = entry;
-		else
-			*(tlsKeyEntry **)vitasdk_get_tls_data(0) = entry;
-	}
+    sceClibPrintf("[TLS] SUCCESS: Wrote value %p to TLS slot %u at address %p\n", value, key, addr);
 
-	entry->value = value;
-	return PTE_OS_OK;
+    return PTE_OS_OK;
 }
 
 void * pte_osTlsGetValue(unsigned int index)
 {
-	tlsKeyEntry *entry = *(tlsKeyEntry **)vitasdk_get_tls_data(0);
-
-	while (entry)
-	{
-		if (entry->key == index)
-			break;
-
-		entry = entry->next;
-	}
-
-	// no matching entry...
-	if (!entry)
-		return NULL;
-
-	return entry->value;
+	void **value = (void **)sceKernelGetReservedTLSAddr(index);
+    return value ? *value : NULL;
 }
 
 pte_osResult pte_osTlsAlloc(unsigned int *pKey)
 {
-	unsigned int key = 0;
-
-	// generate random key
-	sceKernelGetRandomNumber(&key, 4);
-
-	*pKey = key;
+	if (_last_tls_key >= TLS_SLOT_END)
+	{
+		return PTE_OS_NO_RESOURCES; // no more TLS slots available
+	}
+	*pKey = _last_tls_key++;
 	return PTE_OS_OK;
 }
 
 pte_osResult pte_osTlsFree(unsigned int index)
 {
+	// We should have enough slots. Don't worry about this for now
 	return PTE_OS_OK;
 }
 
