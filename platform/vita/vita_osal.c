@@ -601,19 +601,13 @@ pte_osResult pte_osTlsSetValue(unsigned int key, void *value)
 {
     void *addr = sceKernelGetReservedTLSAddr(key);
 
-    // Log key and returned address
-    sceClibPrintf("[TLS] SetValue: key = %u, addr = %p\n", key, addr);
-
     if (!addr)
     {
-        sceClibPrintf("[TLS] ERROR: TLS address for key %u is NULL (possible invalid key or uninitialized TLS).\n", key);
+        DEBUG_PRINT("[TLS] ERROR: TLS address for key %u is NULL (possible invalid key or uninitialized TLS).\n", key);
         return PTE_OS_GENERAL_FAILURE;
     }
 
     *(void **)addr = value;
-
-    sceClibPrintf("[TLS] SUCCESS: Wrote value %p to TLS slot %u at address %p\n", value, key, addr);
-
     return PTE_OS_OK;
 }
 

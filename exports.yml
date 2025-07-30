@@ -144,6 +144,7 @@ pthread:
       - pthread_delay_np: 0xfd0501d4
       - pthread_rwlockattr_setpshared: 0xfde32aca
       variables:
+      - _tls_mutex: 0x5f1648f6
       - __crt0_module_sdk_version_var: 0xc08b0635
       - _tls_region_info: 0xc7cdb72f
       - __dso_handle: 0xf49ad47a
