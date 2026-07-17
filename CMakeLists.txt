@@ -42,7 +42,15 @@ set_target_properties(pthread PROPERTIES LINKER_LANGUAGE C)
 
 target_include_directories(pthread PRIVATE ${CMAKE_SOURCE_DIR})
 
-target_compile_options(pthread PRIVATE -fno-strict-aliasing -fno-lto)
+target_compile_options(pthread PRIVATE
+    -fno-strict-aliasing
+    -fno-lto
+    -Wno-error=implicit-function-declaration
+    -Wno-error=int-conversion
+    -Wno-error=implicit-int
+    -Wno-error=declaration-missing-parameter-type
+    -Wno-error=builtin-declaration-mismatch
+)
 
 target_include_directories(pthread PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/platform/vita/)
 
