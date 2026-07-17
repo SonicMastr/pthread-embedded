@@ -154,12 +154,18 @@ int pspStubThreadEntry (unsigned int argc, void *argv)
  *
  ***************************************************************************/
 
+static int _os_initialized = 0;
+
 pte_osResult pte_osInit(void)
 {
 	/* Allocate some memory for our per-thread control data.  We use this for:
 	 * 1. Entry point and parameters for the user thread's main function.
 	 * 2. Semaphore used for thread cancellation.
 	 */
+	if (_os_initialized)
+		return PTE_OS_OK;
+	_os_initialized = 1;
+
 	memset(thread_list, 0, sizeof(thread_list));
 
 	sceKernelCreateLwMutex(&_tls_mutex, "TLS Access Mutex", SCE_KERNEL_MUTEX_ATTR_RECURSIVE, 1, NULL);
@@ -168,6 +174,33 @@ pte_osResult pte_osInit(void)
 	sceKernelUnlockLwMutex(&_tls_mutex, 1);
 
 	return PTE_OS_OK;
+}
+
+static pte_osResult pspAdoptCallingThread(void)
+{
+	SceUID thid = sceKernelGetThreadId();
+	pte_osResult res = PTE_OS_OK;
+	int idx;
+
+	sceKernelLockLwMutex(&_tls_mutex, 1, 0);
+
+	if (pspGetThreadIndex(thid) == -1)
+	{
+		idx = pspFindFreeThreadSlot();
+		if (idx < 0)
+		{
+			res = PTE_OS_NO_RESOURCES;
+		}
+		else
+		{
+			thread_list[idx].threadId = thid;
+			thread_list[idx].evid = sceKernelCreateEventFlag("", 0, 0, NULL);
+		}
+	}
+
+	sceKernelUnlockLwMutex(&_tls_mutex, 1);
+
+	return res;
 }
 
 /****************************************************************************
@@ -184,7 +217,7 @@ pte_osResult pte_osThreadCreate(pte_osThreadEntryPoint entryPoint,
 {
 	/* pthread_create was called by non-pthread thread */
 	if (pspGetThreadIndex(sceKernelGetThreadId()) == -1) {
-		if (pte_osInit() != PTE_OS_OK) {
+		if (pte_osInit() != PTE_OS_OK || pspAdoptCallingThread() != PTE_OS_OK) {
 			return PTE_OS_NO_RESOURCES;
 		}
 	}
