@@ -25,8 +25,10 @@ list(APPEND TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/platform/vita/main.c)
 
 if (STANDALONE_BUILD)
   set(crt0_SOURCE $ENV{VITASDK}/arm-vita-eabi/lib/crt0_module.o)
+  set(SCELIBCPOSIX_STUB SceLibcPosix_stub_weak)
 else()
   set(crt0_SOURCE $<TARGET_OBJECTS:crt0_module>)
+  set(SCELIBCPOSIX_STUB ${CMAKE_BINARY_DIR}/src/SceLibcPosix_stubs/libSceLibcPosix_stub_weak.a)
 endif()
 
 if (MODULE)
@@ -37,6 +39,9 @@ add_executable(pthread
 )
 
 add_dependencies(pthread SceLibcExt_stub_weak SceLibcPosix)
+if (NOT STANDALONE_BUILD)
+  add_dependencies(pthread SceLibcPosix_stubs)
+endif()
 
 set_target_properties(pthread PROPERTIES LINKER_LANGUAGE C)
 
@@ -58,7 +63,7 @@ target_link_libraries(pthread PRIVATE
     -nostdlib
     -nostartfiles
     -nodefaultlibs
-    SceLibcPosix_stub_weak
+    ${SCELIBCPOSIX_STUB}
     SceRtc_stub
     SceNetCtl_stub_weak
     SceNet_stub_weak
