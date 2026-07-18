@@ -70,14 +70,14 @@ target_link_libraries(pthread PRIVATE
     SceLibcExt_stub_weak
     SceLibKernel_stub
     gcc
-) 
+)
 
 vita_create_self(pthread.suprx pthread PRIVATE
-    CONFIG exports.yml
+    GEN_EXPORTS exports.yml
     UNSAFE
 )
 
-vita_create_stubs(pthread_stubs pthread ${CMAKE_CURRENT_SOURCE_DIR}/exports.yml)
+vita_create_stubs(pthread_stubs pthread ${CMAKE_CURRENT_SOURCE_DIR}/exports.yml GEN_EXPORTS)
 
 else()
 add_library(pthread STATIC

@@ -3,7 +3,7 @@ pthread:
   version:
     major: 0x1
     minor: 0x1
-  nid: 0xa5607c61
+  nid: 0xd0e5b8e5
   main:
     start: __module_start
     stop: __module_stop
@@ -54,6 +54,7 @@ pthread:
       - pthread_mutexattr_init: 0x47a6aeca
       - sem_trywait: 0x4935c9c9
       - pthread_spin_trylock: 0x4af5dd2a
+      - pspFindFreeThreadSlot: 0x4d39c80c
       - __module_start: 0x4e7f0530
       - __module_start_main: 0x4fd162e9
       - sched_setscheduler: 0x500ab186
@@ -93,7 +94,6 @@ pthread:
       - sem_getvalue: 0x9522c4fc
       - pthread_barrierattr_getpshared: 0x9652deef
       - ftime: 0x969bb279
-      - at_quick_exit: 0x98d59313
       - __module_exit: 0x98e1e55b
       - pthread_rwlock_trywrlock: 0x9c3edf11
       - pthread_attr_setschedparam: 0x9cda810e
@@ -119,6 +119,7 @@ pthread:
       - pthread_attr_setstackaddr: 0xc0cfd3a2
       - sem_close: 0xc429c88a
       - pthread_setcancelstate: 0xc6369dfe
+      - sceKernelGetReservedTLSAddr: 0xc8dfb9ec
       - pthread_setconcurrency: 0xc9fdcddd
       - sem_timedwait: 0xcaff5f00
       - pthread_rwlock_destroy: 0xcbaaed68
@@ -132,7 +133,7 @@ pthread:
       - sem_unlink: 0xdcf332b4
       - pthread_rwlock_init: 0xde9900b7
       - sem_wait: 0xdfde1950
-      - atexit: 0xe07a8410
+      - pspGetThreadIndex: 0xdff1957e
       - pthread_setaffinity_np: 0xe14417e5
       - pthread_once: 0xe9a2ce7b
       - pthread_attr_getstacksize: 0xedafd89d
@@ -145,6 +146,3 @@ pthread:
       - pthread_rwlockattr_setpshared: 0xfde32aca
       variables:
       - _tls_mutex: 0x5f1648f6
-      - __crt0_module_sdk_version_var: 0xc08b0635
-      - _tls_region_info: 0xc7cdb72f
-      - __dso_handle: 0xf49ad47a
