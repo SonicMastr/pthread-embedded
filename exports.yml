@@ -3,7 +3,7 @@ pthread:
   version:
     major: 0x1
     minor: 0x1
-  nid: 0x3e976d11
+  nid: 0xa2019481
   main:
     start: __module_start
     stop: __module_stop

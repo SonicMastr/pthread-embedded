@@ -50,7 +50,7 @@
 // debug
 #include <stdarg.h>
 
-#define DEFAULT_STACK_SIZE_BYTES 0x1000
+#define DEFAULT_STACK_SIZE_BYTES 0x100000
 
 #define PTHREAD_EVID_CANCEL 0x1
 
@@ -203,6 +203,29 @@ static pte_osResult pspAdoptCallingThread(void)
 	return res;
 }
 
+static SceUID pspGetCallingThreadEvid(void)
+{
+	int idx = pspGetThreadIndex(sceKernelGetThreadId());
+
+	if (idx < 0)
+	{
+		if (pte_osInit() != PTE_OS_OK || pspAdoptCallingThread() != PTE_OS_OK)
+			return -1;
+
+		idx = pspGetThreadIndex(sceKernelGetThreadId());
+		if (idx < 0)
+			return -1;
+	}
+
+	return thread_list[idx].evid;
+}
+
+static SceUID pspGetThreadEvid(pte_osThreadHandle threadHandle)
+{
+	int idx = pspGetThreadIndex(threadHandle);
+	return idx < 0 ? -1 : thread_list[idx].evid;
+}
+
 /****************************************************************************
  *
  * Threads
@@ -316,11 +339,12 @@ void pte_osThreadExit()
 pte_osResult pte_osThreadWaitForEnd(pte_osThreadHandle threadHandle)
 {
 	int status = 0;
-	SceUID evid = thread_list[pspGetThreadIndex(sceKernelGetThreadId())].evid;
+	SceUID evid = pspGetCallingThreadEvid();
 	while (1)
 	{
 		unsigned int bits = 0;
-		sceKernelPollEventFlag(evid, PTHREAD_EVID_CANCEL, SCE_EVENT_WAITAND, &bits);
+		if (evid >= 0)
+			sceKernelPollEventFlag(evid, PTHREAD_EVID_CANCEL, SCE_EVENT_WAITAND, &bits);
 
 		if (bits & PTHREAD_EVID_CANCEL)
 		{
@@ -370,7 +394,12 @@ pte_osResult pte_osThreadSetPriority(pte_osThreadHandle threadHandle, int newPri
 
 pte_osResult pte_osThreadCancel(pte_osThreadHandle threadHandle)
 {
-	int res = sceKernelSetEventFlag(thread_list[pspGetThreadIndex(threadHandle)].evid, PTHREAD_EVID_CANCEL);
+	SceUID evid = pspGetThreadEvid(threadHandle);
+
+	if (evid < 0)
+		return PTE_OS_GENERAL_FAILURE;
+
+	int res = sceKernelSetEventFlag(evid, PTHREAD_EVID_CANCEL);
 
 	if (res < 0)
 		return PTE_OS_GENERAL_FAILURE;
@@ -382,7 +411,10 @@ pte_osResult pte_osThreadCancel(pte_osThreadHandle threadHandle)
 pte_osResult pte_osThreadCheckCancel(pte_osThreadHandle threadHandle)
 {
 	unsigned int bits = 0;
-	sceKernelPollEventFlag(thread_list[pspGetThreadIndex(threadHandle)].evid, PTHREAD_EVID_CANCEL, SCE_EVENT_WAITAND, &bits);
+	SceUID evid = pspGetThreadEvid(threadHandle);
+
+	if (evid >= 0)
+		sceKernelPollEventFlag(evid, PTHREAD_EVID_CANCEL, SCE_EVENT_WAITAND, &bits);
 
 	if (bits & PTHREAD_EVID_CANCEL)
 		return PTE_OS_INTERRUPTED;
@@ -550,11 +582,12 @@ pte_osResult pte_osSemaphorePend(pte_osSemaphoreHandle handle, unsigned int *pTi
 pte_osResult pte_osSemaphoreCancellablePend(pte_osSemaphoreHandle semHandle, unsigned int *pTimeout)
 {
 	SceUInt32 start = sceKernelGetProcessTimeLow();
-	SceUID evid = thread_list[pspGetThreadIndex(sceKernelGetThreadId())].evid;
+	SceUID evid = pspGetCallingThreadEvid();
 	while (1)
 	{
 		unsigned int bits = 0;
-		sceKernelPollEventFlag(evid, PTHREAD_EVID_CANCEL, SCE_EVENT_WAITAND, &bits);
+		if (evid >= 0)
+			sceKernelPollEventFlag(evid, PTHREAD_EVID_CANCEL, SCE_EVENT_WAITAND, &bits);
 
 		if (bits & PTHREAD_EVID_CANCEL)
 			return PTE_OS_INTERRUPTED;
