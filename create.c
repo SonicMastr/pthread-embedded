@@ -216,8 +216,13 @@ pthread_create (pthread_t * tid,
 
   if (osResult == PTE_OS_OK)
     {
-      pte_osThreadStart(tp->threadId);
-      result = 0;
+      if (pte_osThreadStart(tp->threadId) == PTE_OS_OK)
+        result = 0;
+      else
+        {
+          result = EAGAIN;
+          goto FAIL0;
+        }
     }
   else
     {

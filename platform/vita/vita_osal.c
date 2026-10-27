@@ -300,7 +300,12 @@ pte_osResult pte_osThreadCreate(pte_osThreadEntryPoint entryPoint,
 
 pte_osResult pte_osThreadStart(pte_osThreadHandle osThreadHandle)
 {
-	sceKernelStartThread(osThreadHandle, 0, NULL);
+	int res = sceKernelStartThread(osThreadHandle, 0, NULL);
+	if (res < 0)
+	{
+		DEBUG_PRINT("pte_osThreadStart: sceKernelStartThread(0x%x) failed 0x%08x\n", osThreadHandle, res);
+		return PTE_OS_GENERAL_FAILURE;
+	}
 	return PTE_OS_OK;
 }
 
